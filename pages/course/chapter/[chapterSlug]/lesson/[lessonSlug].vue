@@ -2,6 +2,29 @@
 const course = useCourse();
 const route = useRoute();
 
+const progress = useLocalStorage("progress", []);
+
+const isLessonComplete = computed(() => {
+  if (!progress.value[chapter.value.number - 1]) {
+    return false;
+  }
+
+  if (!progress.value[chapter.value.number - 1][lesson.value.number - 1]) {
+    return false;
+  }
+
+  return progress.value[chapter.value.number - 1][lesson.value.number - 1];
+});
+
+const toggleComplete = () => {
+  if (!progress.value[chapter.value.number - 1]) {
+    progress.value[chapter.value.number - 1] = [];
+  }
+
+  progress.value[chapter.value.number - 1][lesson.value.number - 1] =
+    !isLessonComplete.value;
+};
+
 const chapter = computed(() => {
   return course.chapters.find(
     (chapter) => chapter.slug === route.params.chapterSlug
@@ -42,8 +65,12 @@ useHead({ title });
       Download Video
     </NuxtLink>
   </div>
+  <VideoPlayer v-if="lesson.videoId" :videoId="lesson.videoId" />
   <p class="">
     {{ lesson.text }}
   </p>
-  <VideoPlayer v-if="lesson.videoId" :videoId="lesson.videoId" />
+  <LessonCompleteButton
+    :modelValue="isLessonComplete"
+    @update:modelValue="toggleComplete"
+  />
 </template>
